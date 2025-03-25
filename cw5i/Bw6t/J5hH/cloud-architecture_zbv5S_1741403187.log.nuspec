@@ -15,7 +15,6 @@
     <packageTypes>
       <packageType name="Template" />
     </packageTypes>
-    <tags>cleanarchitecture clean architecture WebAPI mukesh codewithmukesh fullstackhero solution csharp</tags>
     <icon>./content/icon.png</icon>
   </metadata>
   <files>
