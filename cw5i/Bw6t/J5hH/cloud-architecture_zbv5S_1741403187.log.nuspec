@@ -11,7 +11,6 @@
     <copyright>2024</copyright>
     <readme>./content/README.md</readme>
     <projectUrl>https://fullstackhero.net/dotnet-starter-kit/general/getting-started/</projectUrl>
-    <repository type="git" url="https://github.com/fullstackhero/dotnet-starter-kit"/>
     <packageTypes>
       <packageType name="Template" />
     </packageTypes>
