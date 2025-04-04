@@ -13,7 +13,6 @@
 [submodule "EQNet"]
 	path = EQNet
 	url = https://github.com/AI4EPS/EQNet.git
-[submodule "CCTorch"]
 	path = CCTorch
 	url = https://github.com/AI4EPS/CCTorch.git
 [submodule "ADLoc"]
