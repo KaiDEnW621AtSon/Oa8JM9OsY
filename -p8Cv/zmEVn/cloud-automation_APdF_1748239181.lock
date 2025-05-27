@@ -3866,7 +3866,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rudder_commons"
 version = "0.0.0-dev"
 dependencies = [
  "anyhow",
