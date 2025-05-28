@@ -1,0 +1,94 @@
+# docker stack deploy -c docker-compose.yml whisper
+version: '3.5'
+
+services:
+
+  whisper:
+    build: .
+    image: labbsr0x/whisper:latest
+    depends_on:
+      - mysqld-whisper
+      - hydra
+    ports:
+      - "7070:7070"
+    environment:
+      - WHISPER_PORT=7070
+      - WHISPER_LOG_LEVEL=debug
+      - WHISPER_HYDRA_ADMIN_URL=http://hydra:4445/
+      - WHISPER_HYDRA_PUBLIC_URL=http://hydra:4444/
+      - WHISPER_SECRET_KEY=uhSunsodnsuBsdjsbds
+      - WHISPER_DATABASE_URL=mysql://root:secret@tcp(mysqld-whisper:3306)/whisper?charset=utf8mb4&parseTime=True&loc=Local
+      - WHISPER_MAIL_USER=628ecbe7f53ac2
+      - WHISPER_MAIL_PASSWORD=457cd26e7890c5
+      - WHISPER_MAIL_HOST=smtp.mailtrap.io
+      - WHISPER_MAIL_PORT=2525
+      - WHISPER_PUBLIC_URL=http://localhost:7070
+    restart: on-failure
+
+  hydra-migrate:
+    image: oryd/hydra:v1.0.0-rc.11
+    depends_on:
+      - mysqld-hydra
+    environment:
+      - DSN=mysql://root:secret@tcp(mysqld-hydra:3306)/hydra?max_conns=20&max_idle_conns=4
+    command:
+      migrate sql -e --yes
+    restart: on-failure
+
+  hydra:
+    image: oryd/hydra:v1.0.0-rc.11
+    depends_on:
+      - hydra-migrate
+    ports:
+      # Public port
+      - "4444:4444"
+      # Admin port
+      - "4445:4445"
+      # Port for hydra token user
+      - "5555:5555"
+    command:
+      serve all --dangerous-force-http
+    environment:
+      - LOG_LEVEL=debug
+      - URLS_SELF_ISSUER=http://hydra:4444
+      - URLS_CONSENT=http://localhost:7070/consent
+      - URLS_LOGIN=http://localhost:7070/login
+      - DSN=mysql://root:secret@tcp(mysqld-hydra:3306)/hydra?max_conns=20&max_idle_conns=4
+      - SECRETS_SYSTEM=youReallyNeedToChangeThis
+      - OAUTH2_EXPOSE_INTERNAL_ERRORS=true
+      - OIDC_SUBJECT_IDENTIFIERS_ENABLED=public,pairwise
+      - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=youReallyNeedToChangeThis
+      - SERVE_PUBLIC_CORS_ENABLED=true
+      - SERVE_ADMIN_CORS_ENABLED=true
+      # - STRATEGIES_ACCESS_TOKEN=jwt
+    restart: on-failure
+
+  mysqld-hydra:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=hydra
+
+  mysqld-whisper:
+    image: mysql:5.7
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=whisper
+
+  prometheus:
+    image: abilioesteves/prometheus:1.0.0
+    ports:
+      - 9090:9090
+    environment:
+      - SCRAPE_INTERVAL=15s
+      - SCRAPE_TIMEOUT=10s
+      - STATIC_SCRAPE_TARGETS=whisper@whisper:7070/metrics
+
+  local:
+    image: busybox
+    depends_on:
+      - hydra
+      - mysqld-whisper
+
