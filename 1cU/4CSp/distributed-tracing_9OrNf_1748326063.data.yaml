@@ -23,7 +23,6 @@ github:
     - skywalking
     - observability
     - apm
-    - distributed-tracing
     - service-mesh
     - dapper
     - web-performance
